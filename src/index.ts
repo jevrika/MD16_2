@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 const cors = require('cors');
 const bodyParser = require('body-parser');
 import { connection } from './db';
+import { QueryError } from 'mysql2';
 const app = express();
 const port = 3000;
 app.use(bodyParser.json());
@@ -33,17 +34,12 @@ app.get('/movies', async (req: Request<{}, {}, Book>, res) => {
 });
 
 app.get('/movies/:id', async (req: Request<{ id: string }, {}, {}, Book>, res) => {
-  connection.query(`SELECT * FROM movies WHERE id = '${req.params.id}'`, (error, results) => {
-    const resultstest: any = results;
-    if (resultstest.length === 0) {
-      res.status(404).json({ error: 'Movie not found' });
-      return;
-    }
+  connection.query(`SELECT * FROM movies WHERE id = '${req.params.id}'`, (error: QueryError, results: ([{}] | undefined)[]) => {
     if (error) {
       res.status(500).json({ error: 'Internal Server Error' });
       return;
     }
-    res.json(results);
+    res.json(results[0]);
   });
 });
 
